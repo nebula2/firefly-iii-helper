@@ -46,7 +46,7 @@ else if (!_isLoading)
                     <td>
                         @foreach (var detail in item.TagSubResults)
                         {
-                            <a class="btn btn-success" @onclick="async () => await OpenFireflyTagPageAsync(detail.FireflyUrl)"><i class="oi oi-link-intact"></i></a><span><b>@detail.Subvalue.ToString("N2")</b></span><span> zum Tag </span><span><b>@detail.Tag</b></span><br />
+                            <a class="btn btn-success" @onclick="async () => await OpenFireflyTagPageAsync(detail.FireflyUrl)"><i class="oi oi-link-intact"></i></a><span><b>@detail.Subvalue.ToString("N2")</b></span><span> for </span><span><b>@detail.Tag</b></span><br />
                         }
                     </td>
                     <td>@item.Note</td>
