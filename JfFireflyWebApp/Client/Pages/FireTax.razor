@@ -1,0 +1,105 @@
+﻿@page "/firetax"
+@using JfFireflyWebApp.Shared
+@using BlazorDateRangePicker
+@using System.Globalization
+@using System.Web
+
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime;
+
+<h3>FireTax</h3>
+
+@if (!string.IsNullOrWhiteSpace(_errorMsg))
+{
+    <p><em>@_errorMsg</em></p>
+}
+
+@if (_isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!_isLoading)
+{
+    <DateRangePicker Culture="DateTimeFormatCulture" @bind-StartDate="StartDate" @bind-EndDate="EndDate" />
+    <div class="form-group">
+        <a class="btn btn-success" @onclick="async () => await LoadTaxmanResultAsync()"><i class="oi oi-cloud-download"></i> Load Taxman Results</a>
+    </div>
+}
+@if(_result != null)
+{
+    <p><em><span>Here are results from </span><span>@_result.FromDate.ToString("yyyy-MM-dd")</span><span> to </span><span>@_result.ToDate.ToString("yyyy-MM-dd")</span></em></p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Taxman Key</th>
+                <th>Sum</th>
+                <th>Details</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in _result.SearchResults)
+            {
+                <tr>
+                    <td>@item.MappingToSearch.TaxmanValue</td>
+                    <td>@item.Amount.ToString("N2")</td>
+                    <td>
+                        @foreach (var detail in item.TagSubResults)
+                        {
+                            <a class="btn btn-success" @onclick="async () => await OpenFireflyTagPageAsync(detail.FireflyUrl)"><i class="oi oi-link-intact"></i></a><span><b>@detail.Subvalue.ToString("N2")</b></span><span> zum Tag </span><span><b>@detail.Tag</b></span><br />
+                        }
+                    </td>
+                    <td>@item.Note</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private TaxmanResult _result;
+    private bool _isLoading;
+    private string _errorMsg = "";
+
+    public DateTimeOffset? StartDate { get; set; } = new DateTimeOffset(new DateTime(DateTime.Now.Year - 1, 1, 1));
+    public DateTimeOffset? EndDate { get; set; } = new DateTimeOffset(new DateTime(DateTime.Now.Year - 1, 12, 31));
+
+    public CultureInfo DateTimeFormatCulture { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        DateTimeFormatCulture = new CultureInfo(CultureInfo.CurrentCulture.Name)
+        {
+            DateTimeFormat = new DateTimeFormatInfo { ShortDatePattern = "yyyy-MM-dd" },
+        };
+    }
+
+    private async Task LoadTaxmanResultAsync()
+    {
+        _isLoading = true;
+
+        try
+        {
+            if (StartDate == null) throw new Exception("Starting date needs to be filled.");
+            if (EndDate == null) throw new Exception("Ending date needs to be filled.");
+            if (StartDate > EndDate) throw new Exception("The start date must be greater than the end date");
+
+            string destination = $"FireTax/GetFromDateRange/" +
+                    $"{HttpUtility.UrlEncode(((DateTimeOffset)StartDate).ToString("yyyy-MM-dd"))}/" +
+                    $"{HttpUtility.UrlEncode(((DateTimeOffset)EndDate).ToString("yyyy-MM-dd"))}";
+
+            _result = await Http.GetFromJsonAsync<TaxmanResult>(destination);
+            _errorMsg = "";
+        }
+        catch (Exception ex) { _errorMsg = ex.Message; }
+
+        _isLoading = false;
+    }
+
+    private async Task OpenFireflyTagPageAsync(string hyperlink)
+    {
+        await JSRuntime.InvokeAsync<object>("open", hyperlink, "_blank");
+    }
+}

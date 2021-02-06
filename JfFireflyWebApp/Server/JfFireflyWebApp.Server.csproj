@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>6116ae10-37bf-4f95-9ff7-c52c82ec0035</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\JfFireflyWebApp.Client.csproj" />
+    <ProjectReference Include="..\Shared\JfFireflyWebApp.Shared.csproj" />
+  </ItemGroup>
+
+
+</Project>

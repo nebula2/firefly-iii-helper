@@ -1,0 +1,52 @@
+﻿@page "/"
+@using FireflyIII
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h1>JF Firefly WebApp</h1>
+
+<p><em>Hier mache ich Zeugs mit Firefly Daten.</em></p>
+
+@if (_fireflySystemInfo == null)
+{
+    <p><em>Lade Firefly-Informationen...</em></p>
+}
+else
+{
+    <p><em>Firefly Version: @_fireflySystemInfo.Data.Version</em></p>
+    <p><em>Firefly Api: @_fireflySystemInfo.Data.Api_version</em></p>
+    <p><em>Firefly Php-Version: @_fireflySystemInfo.Data.Php_version</em></p>
+    <p><em>Firefly OS: @_fireflySystemInfo.Data.Os</em></p>
+
+    if (_fireflySystemInfo.AdditionalProperties != null && _fireflySystemInfo.AdditionalProperties.Count > 0)
+    {
+        <p><em>Zusätzliche Eigenschaften</em></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in _fireflySystemInfo.AdditionalProperties)
+                {
+                    <tr>
+                        <td>@item.Key</td>
+                        <td>@item.Value</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code{
+    private SystemInfo _fireflySystemInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _fireflySystemInfo = await Http.GetFromJsonAsync<SystemInfo>("FireTax/GetSystemInfo");
+    }
+}
